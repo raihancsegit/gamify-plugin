@@ -17,5 +17,3 @@ export const getPointTypes = () => {
 export const createPointType = (data) => {
     return apiClient.post('/point-types', data);
 };
-
-// We can add updatePointType and deletePointType later
