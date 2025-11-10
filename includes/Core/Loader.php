@@ -4,6 +4,7 @@ namespace Gamify\Core;
 
 use Gamify\Admin\Menu;
 use Gamify\API\Api_Manager;
+use Gamify\System\Trigger_Engine;
 
 // Exit if accessed directly.
 if (! defined('ABSPATH')) {
@@ -35,5 +36,6 @@ final class Loader
     {
         new Menu();
         new Api_Manager();
+        new Trigger_Engine();
     }
 }

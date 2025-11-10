@@ -51,6 +51,19 @@ class Api_Manager
                 'permission_callback' => [$this, 'admin_permission_check'],
             ],
         ]);
+
+        register_rest_route($this->namespace, '/triggers', [
+            [
+                'methods'  => 'GET',
+                'callback' => [$this, 'get_triggers'],
+                'permission_callback' => [$this, 'admin_permission_check'],
+            ],
+            [
+                'methods'  => 'POST',
+                'callback' => [$this, 'save_triggers'],
+                'permission_callback' => [$this, 'admin_permission_check'],
+            ],
+        ]);
     }
 
     /**
@@ -123,6 +136,59 @@ class Api_Manager
         }
 
         return new \WP_REST_Response($results, 200);
+    }
+
+
+    public function get_triggers(\WP_REST_Request $request)
+    {
+        $engine = new \Gamify\System\Trigger_Engine();
+        $available_triggers = $engine->get_available_triggers();
+
+        global $wpdb;
+        $active_triggers_raw = $wpdb->get_results("SELECT trigger_key, points_to_award FROM {$wpdb->prefix}gamify_triggers WHERE is_active = 1", OBJECT_K);
+
+        $active_triggers = [];
+        foreach ($active_triggers_raw as $key => $data) {
+            $active_triggers[$key] = $data->points_to_award;
+        }
+
+        return new \WP_REST_Response([
+            'available' => $available_triggers,
+            'active'    => $active_triggers,
+        ], 200);
+    }
+
+    public function save_triggers(\WP_REST_Request $request)
+    {
+        $active_hooks = $request->get_param('active_hooks'); // Expects an object like: { "wp_login": 10, "publish_post": 50 }
+
+        if (! is_array($active_hooks)) {
+            return new \WP_Error('invalid_data', 'Invalid data format.', ['status' => 400]);
+        }
+
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'gamify_triggers';
+
+        // First, deactivate all existing triggers
+        $wpdb->query("UPDATE {$table_name} SET is_active = 0");
+
+        foreach ($active_hooks as $key => $points) {
+            $points = intval($points);
+            if ($points == 0) continue;
+
+            // Check if the trigger already exists
+            $exists = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$table_name} WHERE trigger_key = %s", $key));
+
+            if ($exists) {
+                // Update existing trigger
+                $wpdb->update($table_name, ['points_to_award' => $points, 'is_active' => 1], ['trigger_key' => $key]);
+            } else {
+                // Insert new trigger
+                $wpdb->insert($table_name, ['trigger_key' => $key, 'points_to_award' => $points, 'is_active' => 1]);
+            }
+        }
+
+        return new \WP_REST_Response(['message' => 'Settings saved successfully.'], 200);
     }
 
     /**

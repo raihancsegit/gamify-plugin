@@ -23,6 +23,9 @@ if (file_exists(GAMIFY_PATH . 'vendor/autoload.php')) {
     require_once GAMIFY_PATH . 'vendor/autoload.php';
 }
 
+// Include helper functions
+require_once GAMIFY_PATH . 'includes/functions.php';
+
 /**
  * Register the activation hook.
  */

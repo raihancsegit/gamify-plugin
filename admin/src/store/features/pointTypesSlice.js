@@ -14,12 +14,22 @@ const initialState = {
     items: [],
     status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
     error: null,
+    view: 'table', // Can be 'table' or 'settings'
+    selectedPointType: null, // Holds the ID of the point type being edited, or null for a new one
 };
 
 const pointTypesSlice = createSlice({
     name: 'pointTypes',
     initialState,
-    reducers: {},
+    // --- New reducers to control the UI view ---
+    reducers: {
+        setView: (state, action) => {
+            state.view = action.payload;
+        },
+        setSelectedPointType: (state, action) => {
+            state.selectedPointType = action.payload;
+        },
+    },
     extraReducers: (builder) => {
         builder
             .addCase(fetchPointTypes.pending, (state) => {
@@ -35,5 +45,8 @@ const pointTypesSlice = createSlice({
             });
     },
 });
+
+// --- Export the new actions ---
+export const { setView, setSelectedPointType } = pointTypesSlice.actions;
 
 export default pointTypesSlice.reducer;

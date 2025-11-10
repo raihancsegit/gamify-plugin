@@ -70,6 +70,16 @@ class Installer
             UNIQUE KEY slug (slug)
         ) $charset_collate;";
 
+        $sql_triggers = "CREATE TABLE {$wpdb->prefix}gamify_triggers (
+            id BIGINT(20) NOT NULL AUTO_INCREMENT,
+            trigger_key VARCHAR(255) NOT NULL,
+            points_to_award INT(11) NOT NULL DEFAULT 0,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            log_description VARCHAR(255) DEFAULT '',
+            PRIMARY KEY (id),
+            UNIQUE KEY trigger_key (trigger_key)
+        ) $charset_collate;";
+
         // We need dbDelta to create/update tables safely
         if (! function_exists('dbDelta')) {
             require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -78,6 +88,7 @@ class Installer
         dbDelta($sql_points);
         dbDelta($sql_logs);
         dbDelta($sql_point_types);
+        dbDelta($sql_triggers);
     }
 
     /**
